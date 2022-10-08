@@ -31,16 +31,16 @@ public class UserDto {
     }
 
     public boolean isInAll() {
-        if(!userId.isEmpty()) {
+        if(userId.isEmpty()) {
             return false;
         }
-        if(!password.isEmpty()) {
+        if(password.isEmpty()) {
             return false;
         }
-        if(!name.isEmpty()) {
+        if(name.isEmpty()) {
             return false;
         }
-        if(!email.isEmpty()) {
+        if(email.isEmpty()) {
             return false;
         }
         return true;

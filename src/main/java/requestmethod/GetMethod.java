@@ -11,11 +11,15 @@ import java.util.Map;
 
 import static util.HttpRequestUtils.parseQueryString;
 
-public class GetMethod {
+public class GetMethod extends BasicHttpMethod{
 
     private static final Logger log = LoggerFactory.getLogger(GetMethod.class);
 
-    public static String execute(String url) {
+    public GetMethod() {
+        isSuccess = false;
+    }
+
+    public String execute(String url) {
         String urlPath = "";
         Map<String, String> urlQuery = new HashMap<>();
         if(url.contains("?")) {

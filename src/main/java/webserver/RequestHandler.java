@@ -1,6 +1,7 @@
 package webserver;
 
 
+import com.sun.xml.internal.ws.api.ha.StickyFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import requestmethod.GetMethod;
@@ -30,11 +31,13 @@ public class RequestHandler extends Thread{
         String DELETE = "DELETE";
     }
 
-    interface Status {
-        String URL_PATH = "requestUrl";
-        String STATUS_CODE = "httpStatus";
-        String HTTP_METHOD = "httpMethod";
+    interface  Status {
+        String URL_PATH = "responseUrl";
+        String STATUS_CODE = "statusCode";
+        String COOKIE = "cookie";
+        String ACCEPT = "Accept";
     }
+
 
     public RequestHandler(Socket connectionSocket) {
         this.connection = connectionSocket;
@@ -47,10 +50,13 @@ public class RequestHandler extends Thread{
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             // TODO this function is Process for client request
             DataOutputStream dos = new DataOutputStream(out);
-            Map<String, String> executeData = requestInput(in);
-            byte[] body =  returnPage(executeData.get(Status.URL_PATH));
+            Map<String, Object> executeData = requestInput(in);
+            byte[] body =  returnPage(executeData.get(Status.URL_PATH).toString());
             if(body != null) {//page
-                responseHeader(dos, body.length, executeData.get(Status.STATUS_CODE));
+                responseHeader(dos, body.length,
+                        executeData.get(Status.STATUS_CODE).toString(),
+                        executeData.get(Status.COOKIE) != null ? executeData.get(Status.COOKIE).toString() : null,
+                        executeData.get(Status.URL_PATH).toString().contains("css") ? "text/css" : "text/html");
                 responseBody(dos, body);
             } else {
                 //
@@ -60,7 +66,7 @@ public class RequestHandler extends Thread{
         }
     }
 
-    private Map<String, String> requestInput(InputStream ins) {
+    private Map<String, Object> requestInput(InputStream ins) {
         try {
             InputStreamReader streamReader = new InputStreamReader(ins);
             BufferedReader br = new BufferedReader(streamReader);
@@ -70,6 +76,7 @@ public class RequestHandler extends Thread{
             int count = 0;
             while (true) {
                 readLine = br.readLine();
+                //log.info(readLine);
                 if(!"".equals(readLine)) {
                     switch (count) {
                         case RequestType.REST_URL:
@@ -97,21 +104,40 @@ public class RequestHandler extends Thread{
         }
     }
 
-    private Map<String, String> restUrlExeCute(String[] restUrl, BufferedReader br, Map<String, String> header) throws IOException {
-        Map<String, String> executeResult = new HashMap<>();
-        executeResult.put(Status.HTTP_METHOD, restUrl[0]);
+    private Map<String, Object> restUrlExeCute(String[] restUrl, BufferedReader br, Map<String, String> header) throws IOException {
+        Map<String, Object> executeResult = new HashMap<>();
+        executeResult.put(Status.ACCEPT , header.get(Status.ACCEPT));
         switch (restUrl[0]) {
             case HttpMethod.GET:
-                executeResult.put(Status.URL_PATH, GetMethod.execute(restUrl[1]));
+                GetMethod getMethod = new GetMethod();
+                Map<String, String> loginCookie = parseCookies(header.get("Cookie"));
+                executeResult.put(Status.URL_PATH, getMethod.execute(restUrl[1]));
+                if(loginCookie.containsKey("logined")) {
+                    if(loginCookie.get("logined").equals("false")) {
+                        executeResult.put(Status.STATUS_CODE, "302");
+                    } else {
+                        executeResult.put(Status.STATUS_CODE, "200");
+                    }
+                } else {
+                    if(restUrl[1].equals("/user/list.html")) {
+                        executeResult.put(Status.STATUS_CODE, "302");
+                    } else {
+                        executeResult.put(Status.STATUS_CODE, "200");
+                    }
+                }
+
                 break;
             case HttpMethod.POST:
                 String postData = IOUtils.readData(br, Integer.parseInt(header.get("Content-Length")));
-                executeResult.put(Status.URL_PATH, "/index.html");
-                if(PostMethod.execute(restUrl[1], postData)) {
-                    executeResult.put(Status.STATUS_CODE, "200");
-                } else {
+                PostMethod postMethod = new PostMethod();
+                executeResult = postMethod.execute(restUrl[1], postData);
+                executeResult.put(Status.URL_PATH, postMethod.getResultUrl());
+                if(postMethod.isSuccess()) {
                     executeResult.put(Status.STATUS_CODE, "302");
+                } else {
+                    executeResult.put(Status.STATUS_CODE, "200");
                 }
+                executeResult.put(Status.COOKIE, postMethod.getMakeCookie());
                 break;
             case HttpMethod.PUT:
             case HttpMethod.DELETE:
@@ -119,6 +145,7 @@ public class RequestHandler extends Thread{
                 executeResult.put(Status.STATUS_CODE, "200");
                 break;
         }
+        //log.info(executeResult.toString());
         return executeResult;
     }
 
@@ -131,33 +158,40 @@ public class RequestHandler extends Thread{
             }
 
             File file = new File("webapp" + requestUrl);
+//            log.info("=====URL PATH=====");
+//            log.info(file.getAbsolutePath());
             return Files.readAllBytes(file.toPath());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
     }
-    private void response200Header(DataOutputStream dos, int lengthOgBodyContent) {
+
+    private void responseHeader(DataOutputStream dos, int lengthOgBodyContent, String status,
+                                String cookies, String accept) {
         try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html; charset=utf-8\r\n");
+            switch (status) {
+                case "200":
+                    dos.writeBytes("HTTP/1.1 " + status + "\r\n");
+                    break;
+                case "302":
+                    dos.writeBytes("HTTP/1.1 " + status + " Found \r\n");
+                    dos.writeBytes("Location: " + "/index.html" + "\r\n");
+                    break;
+            }
+
+            dos.writeBytes("Content-Type: " + accept + "; charset=utf-8 " + "\r\n");
             dos.writeBytes("Content-Length " + lengthOgBodyContent + "\r\n");
+            if(cookies != null) {
+                dos.writeBytes("Set-Cookie: " + cookies + "\r\n");
+            }
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void responseHeader(DataOutputStream dos, int lengthOgBodyContent, String status) {
-        try {
-            dos.writeBytes("HTTP/1.1 " + status + "\r\n");
-            dos.writeBytes("Content-Type: text/html; charset=utf-8\r\n");
-            dos.writeBytes("Content-Length " + lengthOgBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
+
 
     private void responseBody(DataOutputStream dos, byte[] body) {
         try {

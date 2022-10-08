@@ -1,9 +1,11 @@
 package util;
 
+import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -27,12 +29,8 @@ public class HttpRequestUtils {
         return parseValues(cookies, ";");
     }
 
-    public static String requestUrl(String url) {
-        String[] returnData = url.split(" ");
-        if(returnData.length > 1) {
-            return returnData[1];
-        }
-        return "";
+    public static String[] requestUrl(String url) {
+        return url.split(" ");
     }
 
     public static Map<String, String> parseValues(String values, String separator) {

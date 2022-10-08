@@ -1,6 +1,8 @@
 package model;
 
 
+import dto.UserDto;
+
 public class User {
     private String userId;
     private String password;
@@ -12,6 +14,13 @@ public class User {
         this.password = password;
         this.name = name;
         this.email = email;
+    }
+
+    public User(UserDto userDto) {
+        this.userId = userDto.getUserId();
+        this.password = userDto.getPassword();
+        this.name = userDto.getName();
+        this.email = userDto.getEmail();
     }
 
     public String getUserId() {

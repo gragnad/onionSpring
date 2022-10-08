@@ -27,6 +27,14 @@ public class HttpRequestUtils {
         return parseValues(cookies, ";");
     }
 
+    public static String requestUrl(String url) {
+        String[] returnData = url.split(" ");
+        if(returnData.length > 1) {
+            return returnData[1];
+        }
+        return "";
+    }
+
     public static Map<String, String> parseValues(String values, String separator) {
         if(Strings.isNullOrEmpty(values)) {
             return Maps.newHashMap();

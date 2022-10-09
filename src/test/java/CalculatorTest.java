@@ -1,6 +1,6 @@
 import org.junit.Before;
 import org.junit.Test;
-import study1.Calculator;
+import legacy.study1.Calculator;
 
 import static org.junit.Assert.assertEquals;
 

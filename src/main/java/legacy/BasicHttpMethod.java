@@ -1,4 +1,4 @@
-package requestmethod;
+package legacy;
 
 import java.util.Map;
 

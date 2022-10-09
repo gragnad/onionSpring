@@ -1,4 +1,4 @@
-package requestmethod;
+package legacy;
 
 import db.DataBase;
 import dto.UserDto;

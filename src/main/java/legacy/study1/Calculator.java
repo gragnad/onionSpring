@@ -1,4 +1,4 @@
-package study1;
+package legacy.study1;
 
 public class Calculator {
     public int add(int i , int j) {

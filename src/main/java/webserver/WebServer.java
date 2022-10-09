@@ -1,6 +1,5 @@
 package webserver;
 
-import db.DataBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

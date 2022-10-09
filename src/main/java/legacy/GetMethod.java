@@ -1,15 +1,15 @@
 package legacy;
 
-import db.DataBase;
-import dto.UserDto;
-import model.User;
+import nalstudio.db.DataBase;
+import nalstudio.model.dto.UserDto;
+import nalstudio.model.dao.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static util.HttpRequestUtils.parseQueryString;
+import static nalstudio.util.HttpRequestUtils.parseQueryString;
 
 public class GetMethod extends BasicHttpMethod{
 

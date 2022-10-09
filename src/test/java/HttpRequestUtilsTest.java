@@ -1,11 +1,11 @@
 import org.junit.Test;
-import util.HttpRequestUtils;
+import nalstudio.util.HttpRequestUtils;
 
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
-import util.HttpRequestUtils.Pair;
+import nalstudio.util.HttpRequestUtils.Pair;
 
 public class HttpRequestUtilsTest {
     @Test

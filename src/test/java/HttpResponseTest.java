@@ -1,4 +1,4 @@
-import httpmethod.HttpResponse;
+import nalstudio.httpmethod.HttpResponse;
 import org.junit.Test;
 
 import java.io.File;

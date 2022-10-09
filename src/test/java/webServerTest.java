@@ -1,5 +1,5 @@
 
-import httpmethod.HttpRequest;
+import nalstudio.httpmethod.HttpRequest;
 import org.junit.Test;
 
 import java.io.*;

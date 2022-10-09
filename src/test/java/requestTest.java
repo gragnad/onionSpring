@@ -1,8 +1,7 @@
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import webserver.RequestHandler;
-import webserver.WebServer;
+import nalstudio.RequestHandler;
 
 import java.io.IOException;
 import java.net.ServerSocket;
